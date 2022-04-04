@@ -1,17 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <Import Project="..\Contract\Server.Contract.props" />
-  <Import Project="..\NativeTasks.props"/>
-
+  <Import Project="..\NativeTasks.props" />
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-
-    <!-- Indicate the assembly is providing a COM server -->
     <EnableComHosting>true</EnableComHosting>
-
     <ResourceAdditionalIncludeDirectories>$(WindowIncludeRoot)um;$(WindowIncludeRoot)shared;C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.31.31103\atlmfc\include</ResourceAdditionalIncludeDirectories>
   </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\COMRegistration\COMRegistration.csproj" />
     <ResourceCompile Include="Resource.rc">
@@ -39,5 +33,6 @@
     <Message Importance="High" Text="Unregister:%0a    regsvr32.exe /u &quot;$(ProjectDir)$(OutputPath)$(ComHostFileName)&quot;" />
   </Target>
 
-  <Import Project="..\NativeTasks.targets"/>
+  <Import Project="..\NativeTasks.targets" />
+
 </Project>

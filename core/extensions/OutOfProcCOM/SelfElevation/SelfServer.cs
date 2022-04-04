@@ -5,16 +5,16 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 
-namespace OutOfProcCOM
+namespace SelfElevation
 {
     [ComVisible(true)]
     [Guid(Contract.Constants.ServerClass)]
     [ComDefaultInterface(typeof(IServer))]
-    public sealed class DllServer : IServer
+    public class SelfServer : IServer
     {
         double IServer.ComputePi()
         {
-            Trace.WriteLine($"Running {nameof(DllServer)}.{nameof(IServer.ComputePi)}");
+            Trace.WriteLine($"Running {nameof(SelfServer)}.{nameof(IServer.ComputePi)}");
             double sum = 0.0;
             int sign = 1;
             for (int i = 0; i < 1024; ++i)
@@ -27,7 +27,7 @@ namespace OutOfProcCOM
         }
 
 #if EMBEDDED_TYPE_LIBRARY
-        private static readonly string tlbPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), $"{nameof(DllServer)}.comhost.dll");
+        private static readonly string tlbPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), $"{nameof(SelfServer)}.comhost.dll");
 #else
         private static readonly string tlbPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), Contract.Constants.TypeLibraryName);
 #endif
@@ -35,7 +35,7 @@ namespace OutOfProcCOM
         [ComRegisterFunction]
         internal static void RegisterFunction(Type t)
         {
-            if (t != typeof(DllServer))
+            if (t != typeof(SelfServer))
                 return;
 
             // Register DLL surrogate and type library
@@ -46,7 +46,7 @@ namespace OutOfProcCOM
         [ComUnregisterFunction]
         internal static void UnregisterFunction(Type t)
         {
-            if (t != typeof(DllServer))
+            if (t != typeof(SelfServer))
                 return;
 
             // Unregister DLL surrogate and type library

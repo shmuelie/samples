@@ -1,0 +1,129 @@
+<Project>
+  <UsingTask TaskName="RC" AssemblyFile="$(VCToolPath)Microsoft.Build.CPPTasks.Common.dll" />
+  <UsingTask TaskName="MIDL" AssemblyFile="$(VCToolPath)Microsoft.Build.CppTasks.Common.dll"/>
+  <Target Name="RCMaybe" BeforeTargets="CoreCompile">
+    <ItemGroup>
+      <ResourceCompile Condition="'@(ResourceCompile)' != ''">
+        <MinimalRebuildFromTracking Condition="'$(_BuildActionType)' != 'Build' or '$(ForceRebuild)' == 'true'">false</MinimalRebuildFromTracking>
+        <ExcludedInputPaths>$(ExcludePath)</ExcludedInputPaths>
+      </ResourceCompile>
+    </ItemGroup>
+
+    <PropertyGroup>
+      <RCToolArchitecture Condition="'$(RCToolArchitecture)' == ''">$(WindowsSDKToolArchitecture)</RCToolArchitecture>
+      <RCToolExe>rc.exe</RCToolExe>
+      <RCToolPath>$(WindowsTools)</RCToolPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <RCNoDependencies Condition="'@(RCNoDependencies)' == '' and '%(ClInclude.NoDependency)' == 'true'" Include="@(ClInclude)" />
+      <RCNoDependencies Condition="'@(NoDependencies)' != ''" Include="@(NoDependencies)" />
+    </ItemGroup>
+
+    <RC Condition="'%(ResourceCompile.ExcludedFromBuild)'!='true'" Source="%(ResourceCompile.FullPath)" AdditionalIncludeDirectories="%(ResourceCompile.AdditionalIncludeDirectories)" AdditionalOptions="%(ResourceCompile.AdditionalOptions)" Culture="%(ResourceCompile.Culture)" IgnoreStandardIncludePath="%(ResourceCompile.IgnoreStandardIncludePath)" NullTerminateStrings="%(ResourceCompile.NullTerminateStrings)" PreprocessorDefinitions="%(ResourceCompile.PreprocessorDefinitions)" ResourceOutputFileName="%(ResourceCompile.ResourceOutputFileName)" SuppressStartupBanner="%(ResourceCompile.SuppressStartupBanner)" ShowProgress="%(ResourceCompile.ShowProgress)" UndefinePreprocessorDefinitions="%(ResourceCompile.UndefinePreprocessorDefinitions)" UseResponseFile="%(ResourceCompile.UseResponseFile)" TrackerLogDirectory="%(ResourceCompile.TrackerLogDirectory)" MinimalRebuildFromTracking="%(ResourceCompile.MinimalRebuildFromTracking)" ToolArchitecture="$(RCToolArchitecture)" TrackerFrameworkPath="$(RCTrackerFrameworkPath)" TrackerSdkPath="$(RCTrackerSdkPath)" TrackedInputFilesToIgnore="@(RCNoDependencies)" TrackedOutputFilesToIgnore="@(RCTrackedOutputFilesToIgnore)" ExcludedInputPaths="%(ResourceCompile.ExcludedInputPaths)" TLogReadFiles="@(RCTLogReadFiles)" TLogWriteFiles="@(RCTLogWriteFiles)" ToolExe="$(RCToolExe)" ToolPath="$(RCToolPath)" TrackFileAccess="$(TrackFileAccess)" AcceptableNonZeroExitCodes="%(ResourceCompile.AcceptableNonZeroExitCodes)" EffectiveWorkingDirectory="$(IntermediateOutputPath)">
+      <Output TaskParameter="SourcesCompiled" ItemName="RCSourcesCompiled" />
+    </RC>
+    <Move SourceFiles="@(ResourceCompile->'%(rootdir)%(directory)%(filename).res')" Condition="Exists('%(rootdir)%(directory)%(filename).res')" DestinationFolder="$(IntermediateOutputPath)" />
+    <PropertyGroup>
+      <Win32Resource>$(IntermediateOutputPath)Resource.res</Win32Resource>
+    </PropertyGroup>
+  </Target>
+  <Target Name="Midl"
+        Condition="'@(Midl)' != ''"
+        DependsOnTargets="SelectMidl">
+
+    <ItemGroup>
+      <Midl Condition="'@(Midl)' != ''">
+        <MinimalRebuildFromTracking   Condition="'$(_BuildActionType)' != 'Build' or '$(ForceRebuild)' == 'true'">false</MinimalRebuildFromTracking>
+        <ExcludedInputPaths>$(ExcludePath)</ExcludedInputPaths>
+      </Midl>
+    </ItemGroup>
+
+    <PropertyGroup>
+      <MidlToolArchitecture Condition="'$(MidlToolArchitecture)' == ''">$(WindowsSDKToolArchitecture)</MidlToolArchitecture>
+      <MultiProcMIDL Condition="'$(UseMultiToolTask)' == 'true'">true</MultiProcMIDL>
+      <ToolTaskCount Condition="'$(UseMultiToolTask)' == 'true'">$(CL_MPCount)</ToolTaskCount>
+      <MIDLToolExe>midl.exe</MIDLToolExe>
+      <MIDLToolPath>$(WindowsTools)</MIDLToolPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <MidlNoDependencies Condition="'@(MidlNoDependencies)' == '' and '%(ClInclude.NoDependency)' == 'true'" Include="@(ClInclude)"/>
+      <MidlNoDependencies Condition="'$(NoDependencies)' != ''" Include="$(NoDependencies)" />
+      <MidlNoDependencies Condition="'%(Midl.DllDataFileName)' != '' and '%(Midl.OutputDirectory)' != ''" Include="$([System.IO.Path]::Combine($(MSBuildProjectDirectory), %(Midl.OutputDirectory), %(Midl.DllDataFileName)))" />
+      <MidlNoDependencies Condition="'%(Midl.DllDataFileName)' == '' and '%(Midl.OutputDirectory)' != ''" Include="$([System.IO.Path]::Combine($(MSBuildProjectDirectory), %(Midl.OutputDirectory), dlldata.c))" />
+      <MidlNoDependencies Condition="'%(Midl.DllDataFileName)' == '' and '%(Midl.OutputDirectory)' == ''" Include="$([System.IO.Path]::Combine($(MSBuildProjectDirectory), dlldata.c))" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'@(MidlTrackedOutputFilesToIgnore)' == ''">
+      <MidlTrackedOutputFilesToIgnore Include="@(MidlNoDependencies)" />
+    </ItemGroup>
+
+    <MIDL
+      Condition                           ="'%(Midl.ExcludedFromBuild)'!='true'"
+      Source                              ="%(Midl.Identity)"
+
+      AdditionalIncludeDirectories        ="%(Midl.AdditionalIncludeDirectories)"
+      AdditionalMetadataDirectories       ="%(Midl.AdditionalMetadataDirectories)"
+      AdditionalOptions                   ="%(Midl.AdditionalOptions)"
+      ApplicationConfigurationMode        ="%(Midl.ApplicationConfigurationMode)"
+      ClientStubFile                      ="%(Midl.ClientStubFile)"
+      CPreprocessOptions                  ="%(Midl.CPreprocessOptions)"
+      DefaultCharType                     ="%(Midl.DefaultCharType)"
+      DllDataFileName                     ="%(Midl.DllDataFileName)"
+      EnableErrorChecks                   ="%(Midl.EnableErrorChecks)"
+      EnableWindowsRuntime                ="%(Midl.EnableWindowsRuntime)"
+      Enumclass                           ="%(Midl.Enumclass)"
+      ErrorCheckAllocations               ="%(Midl.ErrorCheckAllocations)"
+      ErrorCheckBounds                    ="%(Midl.ErrorCheckBounds)"
+      ErrorCheckEnumRange                 ="%(Midl.ErrorCheckEnumRange)"
+      ErrorCheckRefPointers               ="%(Midl.ErrorCheckRefPointers)"
+      ErrorCheckStubData                  ="%(Midl.ErrorCheckStubData)"
+      GenerateClientFiles                 ="%(Midl.GenerateClientFiles)"
+      GenerateServerFiles                 ="%(Midl.GenerateServerFiles)"
+      GenerateStublessProxies             ="%(Midl.GenerateStublessProxies)"
+      GenerateTypeLibrary                 ="%(Midl.GenerateTypeLibrary)"
+      HeaderFileName                      ="%(Midl.HeaderFileName)"
+      IgnoreStandardIncludePath           ="%(Midl.IgnoreStandardIncludePath)"
+      InterfaceIdentifierFileName         ="%(Midl.InterfaceIdentifierFileName)"
+      LocaleID                            ="%(Midl.LocaleID)"
+      MkTypLibCompatible                  ="%(Midl.MkTypLibCompatible)"
+      MetadataFileName                    ="%(Midl.MetadataFileName)"
+      MinimumTargetSystem                 ="%(Midl.MinimumTargetSystem)"
+      OutputDirectory                     ="%(Midl.OutputDirectory)"
+      PrependWithABINamepsace             ="%(Midl.PrependWithABINamepsace)"
+      PreprocessorDefinitions             ="%(Midl.PreprocessorDefinitions)"
+      ProxyFileName                       ="%(Midl.ProxyFileName)"
+      RedirectOutputAndErrors             ="%(Midl.RedirectOutputAndErrors)"
+      ServerStubFile                      ="%(Midl.ServerStubFile)"
+      StructMemberAlignment               ="%(Midl.StructMemberAlignment)"
+      SuppressCompilerWarnings            ="%(Midl.SuppressCompilerWarnings)"
+      SuppressStartupBanner               ="%(Midl.SuppressStartupBanner)"
+      TargetEnvironment                   ="%(Midl.TargetEnvironment)"
+      TypeLibFormat                       ="%(Midl.TypeLibFormat)"
+      TypeLibraryName                     ="%(Midl.TypeLibraryName)"
+      UndefinePreprocessorDefinitions     ="%(Midl.UndefinePreprocessorDefinitions)"
+      UseResponseFile                     ="%(Midl.UseResponseFile)"
+      ValidateAllParameters               ="%(Midl.ValidateAllParameters)"
+      WarnAsError                         ="%(Midl.WarnAsError)"
+      WarningLevel                        ="%(Midl.WarningLevel)"
+
+      TrackerLogDirectory                 ="%(Midl.TrackerLogDirectory)"
+      MinimalRebuildFromTracking          ="%(Midl.MinimalRebuildFromTracking)"
+      ToolArchitecture                    ="$(MidlToolArchitecture)"
+      TrackerFrameworkPath                ="$(MidlTrackerFrameworkPath)"
+      TrackerSdkPath                      ="$(MidlTrackerSdkPath)"
+      TrackedInputFilesToIgnore           ="@(MidlNoDependencies)"
+      TrackedOutputFilesToIgnore          ="@(MidlTrackedOutputFilesToIgnore)"
+      ExcludedInputPaths                  ="%(Midl.ExcludedInputPaths)"
+      TLogReadFiles                       ="@(MIDLTLogReadFiles)"
+      TLogWriteFiles                      ="@(MIDLTLogWriteFiles)"
+      ToolExe                             ="$(MIDLToolExe)"
+      ToolPath                            ="$(MIDLToolPath)"
+      TrackFileAccess                     ="$(TrackFileAccess)"
+      AcceptableNonZeroExitCodes          ="%(Midl.AcceptableNonZeroExitCodes)"
+      YieldDuringToolExecution            ="$(MidlYieldDuringToolExecution)"
+    >
+    </MIDL>
+  </Target>
+</Project>

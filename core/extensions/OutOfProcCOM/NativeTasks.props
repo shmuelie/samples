@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup>
+    <VCToolPath>$(MSBuildExtensionsPath)\Microsoft\VC\v170\</VCToolPath>
+    <WindowsKitsRoot>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Kits\Installed Roots', 'KitsRoot10', null, RegistryView.Registry32, RegistryView.Default))</WindowsKitsRoot>
+    <WindowsSdkVersion>10.0.22000.0</WindowsSdkVersion>
+    <WindowIncludeRoot>$(WindowsKitsRoot)Include\$(WindowsSdkVersion)\</WindowIncludeRoot>
+    <WindowsTools>$(WindowsKitsRoot)bin\$(WindowsSdkVersion)\x86\</WindowsTools>
+  </PropertyGroup>
+</Project>

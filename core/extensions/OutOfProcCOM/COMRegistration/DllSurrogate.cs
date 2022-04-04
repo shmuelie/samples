@@ -39,7 +39,9 @@ namespace COMRegistration
             string serverKey = string.Format(KeyFormat.CLSID, clsid);
             using RegistryKey regKey = Registry.LocalMachine.OpenSubKey(serverKey, writable: true);
             if (regKey != null)
+            {
                 regKey.DeleteValue("AppID");
+            }
 
             // Remove the App ID key
             string appIdKey = string.Format(KeyFormat.AppID, clsid);
@@ -47,6 +49,42 @@ namespace COMRegistration
 
             // Unregister type library
             TypeLib.Unregister(tlbPath);
+        }
+
+        public static void AllowElevation(Guid clsid, string resourcePath, int localizedString, int? iconReference)
+        {
+            Trace.WriteLine("Registering server to allow for elevation:");
+            Trace.Indent();
+            Trace.WriteLine($"CLSID: {clsid:B}");
+            Trace.Unindent();
+
+            string serverKey = string.Format(KeyFormat.CLSID, clsid);
+
+            using RegistryKey regKey = Registry.LocalMachine.CreateSubKey(serverKey);
+            regKey.SetValue("LocalizedString", $"@{resourcePath},-{localizedString}", RegistryValueKind.ExpandString);
+            using RegistryKey elevationRegKey = regKey.CreateSubKey("Elevation");
+            elevationRegKey.SetValue("Enabled", 1, RegistryValueKind.DWord);
+            if (iconReference.HasValue)
+            {
+                elevationRegKey.SetValue("IconReference", $"@{resourcePath},-{iconReference.Value}", RegistryValueKind.ExpandString);
+            }
+        }
+
+        public static void DisabllowElevation(Guid clsid)
+        {
+            Trace.WriteLine("Unregistering server to allow for elevation:");
+            Trace.Indent();
+            Trace.WriteLine($"CLSID: {clsid:B}");
+            Trace.Unindent();
+
+            string serverKey = string.Format(KeyFormat.CLSID, clsid);
+
+            using RegistryKey regKey = Registry.LocalMachine.CreateSubKey(serverKey);
+            if (regKey != null)
+            {
+                regKey.DeleteValue("LocalizedString");
+                regKey.DeleteSubKey("Elevation");
+            }
         }
     }
 }
